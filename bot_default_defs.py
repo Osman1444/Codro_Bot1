@@ -1,7 +1,7 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
 import html
-from supabase_test import SupabaseManager
+
 
 class replys:
     def __init__(self, system_prompt, BOT_CONFIG, format_message, get_message, db_handler):
@@ -9,7 +9,7 @@ class replys:
         self.BOT_CONFIG = BOT_CONFIG
         self.format_message = format_message
         self.get_message = get_message
-        self.db_manager = SupabaseManager()
+        self.db_handler = db_handler
 
     async def info(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Send course information"""
@@ -50,12 +50,14 @@ class replys:
                 disable_web_page_preview=True
             )
             
-            # حفظ الرسالة في قاعدة البيانات
-            chat_history = [
+            # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+            current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+            new_messages = [
                 {"role": "user", "parts": ["/info"]},
                 {"role": "model", "parts": [info_message]}
             ]
-            self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+            current_chat_history.extend(new_messages)
+            await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
         except Exception as e:
             await update.message.reply_text("عذراً، حدث خطأ في عرض معلومات الكورس. برجاء المحاولة مرة أخرى.")
@@ -74,12 +76,14 @@ class replys:
 
         await update.message.reply_text(advice_message, parse_mode="HTML")
         
-        # حفظ الرسالة في قاعدة البيانات
-        chat_history = [
+        # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+        current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+        new_messages = [
             {"role": "user", "parts": ["/advice"]},
             {"role": "model", "parts": [advice_message]}
         ]
-        self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+        current_chat_history.extend(new_messages)
+        await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
     async def ask(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         ask_message = """🗨️ <strong>كيف يمكنني مساعدتك؟</strong>
@@ -95,12 +99,14 @@ class replys:
 
         await update.message.reply_text(ask_message, parse_mode="HTML")
         
-        # حفظ الرسالة في قاعدة البيانات
-        chat_history = [
+        # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+        current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+        new_messages = [
             {"role": "user", "parts": ["/ask"]},
             {"role": "model", "parts": [ask_message]}
         ]
-        self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+        current_chat_history.extend(new_messages)
+        await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
     async def courses(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         message = """🎓 <strong>الكورسات المتاحة حالياً:</strong>
@@ -117,12 +123,14 @@ class replys:
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(message, reply_markup=reply_markup, parse_mode="HTML")
         
-        # حفظ الرسالة في قاعدة البيانات
-        chat_history = [
+        # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+        current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+        new_messages = [
             {"role": "user", "parts": ["/courses"]},
             {"role": "model", "parts": [message]}
         ]
-        self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+        current_chat_history.extend(new_messages)
+        await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
     async def schedule(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         try:
@@ -143,12 +151,14 @@ class replys:
 
             await update.message.reply_text(schedule_message, parse_mode="HTML")
             
-            # حفظ الرسالة في قاعدة البيانات
-            chat_history = [
+            # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+            current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+            new_messages = [
                 {"role": "user", "parts": ["/schedule"]},
                 {"role": "model", "parts": [schedule_message]}
             ]
-            self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+            current_chat_history.extend(new_messages)
+            await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
         except Exception as e:
             await update.message.reply_text("عذراً، حدث خطأ في عرض جدول الكورس. برجاء المحاولة مرة أخرى.")
@@ -174,12 +184,14 @@ class replys:
 
             await update.message.reply_text(contact_message, parse_mode="HTML", disable_web_page_preview=True)
             
-            # حفظ الرسالة في قاعدة البيانات
-            chat_history = [
+            # استرجاع المحادثة الحالية وإضافة الرسالة الجديدة
+            current_chat_history = await self.db_handler.get_chat_history(update.effective_user.id)
+            new_messages = [
                 {"role": "user", "parts": ["/contact"]},
                 {"role": "model", "parts": [contact_message]}
             ]
-            self.db_manager.save_chat_history(update.effective_user.id, chat_history)
+            current_chat_history.extend(new_messages)
+            await self.db_handler.save_chat_history(update.effective_user.id, current_chat_history)
 
         except Exception as e:
             await update.message.reply_text("عذراً، حدث خطأ في عرض معلومات التواصل. برجاء المحاولة مرة أخرى.")

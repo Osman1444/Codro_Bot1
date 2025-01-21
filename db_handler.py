@@ -1,104 +1,125 @@
-from supabase import create_client, Client
-import os
-import json
-from datetime import datetime
-import httpx
+import mysql.connector
 import logging
+import json
 from typing import Optional, List, Dict, Any
 
 class DatabaseHandler:
-    def __init__(self, supabase_url: str, supabase_key: str):
-        """Initialize Supabase client with custom timeout settings"""
+    def __init__(self):
+        """Initialize MySQL connection"""
         try:
-            # إنشاء عميل Supabase مع إعدادات مخصصة
-            self.supabase: Client = create_client(
-                supabase_url,
-                supabase_key,
-                # لا نحتاج لتمرير خيارات إضافية هنا
+            self.connection = mysql.connector.connect(
+                host='codro0-0-codro.c.aivencloud.com',
+                port=23589,
+                database='defaultdb',
+                user='avnadmin',
+                password='AVNS_ho02-brH04n6oeORpCL'
             )
-            logging.info("✅ تم الاتصال بنجاح بقاعدة البيانات Supabase")
+            self.cursor = self.connection.cursor(dictionary=True)
+            
+            # إنشاء جدول سجل المحادثة إذا لم يكن موجوداً
+            self._create_chat_history_table()
+            logging.info("✅ تم الاتصال بنجاح بقاعدة البيانات MySQL")
         except Exception as e:
-            logging.error(f"❌ خطأ في الاتصال بقاعدة البيانات Supabase: {str(e)}")
-            self.supabase = None
+            logging.error(f"❌ خطأ في الاتصال بقاعدة البيانات MySQL: {str(e)}")
+            self.connection = None
+            self.cursor = None
+    
+    def _create_chat_history_table(self):
+        """إنشاء جدول سجل المحادثة إذا لم يكن موجوداً"""
+        create_table_query = """
+        CREATE TABLE IF NOT EXISTS chat_history (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            telegram_id BIGINT NOT NULL,
+            chat_history TEXT,
+            INDEX idx_telegram_id (telegram_id)
+        )
+        """
+        self.cursor.execute(create_table_query)
+        self.connection.commit()
 
-    async def save_message(self, user_id: int, message_type: str, message_content: str, 
-                         course: Optional[str] = None, score: Optional[int] = None, 
-                         total: Optional[int] = None) -> Optional[Dict[str, Any]]:
-        """حفظ رسالة في قاعدة البيانات
+    async def save_chat_history(self, telegram_id: int, chat_history: List[Dict[str, Any]]) -> bool:
+        """حفظ سجل المحادثة في قاعدة البيانات
         
         Args:
-            user_id: معرف المستخدم
-            message_type: نوع الرسالة (quiz_evaluation, command_response)
-            message_content: محتوى الرسالة
-            course: اسم الكورس (اختياري)
-            score: النتيجة (اختياري)
-            total: العدد الكلي للأسئلة (اختياري)
+            telegram_id: معرف المستخدم في تيليجرام
+            chat_history: قائمة المحادثات
             
         Returns:
-            Dict containing the saved data or None if there was an error
+            bool: True إذا تم الحفظ بنجاح، False في حالة الخطأ
         """
-        if not self.supabase:
+        if not self.connection or not self.cursor:
             logging.error("❌ لم يتم الاتصال بقاعدة البيانات")
-            return None
+            return False
             
         try:
-            data = {
-                'user_id': user_id,
-                'message_type': message_type,
-                'message_content': message_content,
-                'timestamp': datetime.now().isoformat(),
-                'course': course,
-                'score': score,
-                'total': total
-            }
+            # تحويل قائمة المحادثات إلى JSON
+            chat_history_json = json.dumps(chat_history)
             
-            # حذف القيم الفارغة
-            data = {k: v for k, v in data.items() if v is not None}
+            # التحقق من وجود سجل للمستخدم
+            check_query = "SELECT id FROM chat_history WHERE telegram_id = %s"
+            self.cursor.execute(check_query, (telegram_id,))
+            existing_record = self.cursor.fetchone()
             
-            # استخدام insert مع timeout مخصص
-            response = await self.supabase.table('messages')\
-                .insert(data)\
-                .execute()
+            if existing_record:
+                # تحديث السجل الموجود
+                update_query = """
+                UPDATE chat_history 
+                SET chat_history = %s
+                WHERE telegram_id = %s
+                """
+                self.cursor.execute(update_query, (chat_history_json, telegram_id))
+            else:
+                # إنشاء سجل جديد
+                insert_query = """
+                INSERT INTO chat_history (telegram_id, chat_history)
+                VALUES (%s, %s)
+                """
+                self.cursor.execute(insert_query, (telegram_id, chat_history_json))
             
-            logging.info(f"✅ تم حفظ الرسالة بنجاح لـ user_id={user_id}")
-            return response.data
+            self.connection.commit()
+            logging.info(f"✅ تم حفظ سجل المحادثة بنجاح لـ telegram_id={telegram_id}")
+            return True
+            
         except Exception as e:
-            logging.error(f"❌ خطأ في حفظ الرسالة لـ user_id={user_id}: {str(e)}")
-            return None
+            logging.error(f"❌ خطأ في حفظ سجل المحادثة لـ telegram_id={telegram_id}: {str(e)}")
+            return False
 
-    async def get_user_messages(self, user_id: int, message_type: Optional[str] = None, 
-                              limit: int = 10) -> List[Dict[str, Any]]:
-        """استرجاع رسائل المستخدم من قاعدة البيانات
+    async def get_chat_history(self, telegram_id: int) -> List[Dict[str, Any]]:
+        """استرجاع سجل المحادثة من قاعدة البيانات
         
         Args:
-            user_id: معرف المستخدم
-            message_type: نوع الرسالة (اختياري)
-            limit: عدد الرسائل المطلوبة
+            telegram_id: معرف المستخدم في تيليجرام
             
         Returns:
-            List of messages or empty list if there was an error
+            List[Dict]: قائمة المحادثات أو قائمة فارغة في حالة الخطأ
         """
-        if not self.supabase:
+        if not self.connection or not self.cursor:
             logging.error("❌ لم يتم الاتصال بقاعدة البيانات")
             return []
             
         try:
-            # بناء الاستعلام
-            query = self.supabase.table('messages')\
-                .select('*')\
-                .eq('user_id', user_id)
+            query = """
+            SELECT chat_history 
+            FROM chat_history 
+            WHERE telegram_id = %s
+            """
+            self.cursor.execute(query, (telegram_id,))
+            result = self.cursor.fetchone()
             
-            if message_type:
-                query = query.eq('message_type', message_type)
+            if result and result['chat_history']:
+                chat_history = json.loads(result['chat_history'])
+                logging.info(f"✅ تم استرجاع سجل المحادثة بنجاح لـ telegram_id={telegram_id}")
+                return chat_history
             
-            # تنفيذ الاستعلام مع الترتيب والحد
-            response = await query\
-                .order('timestamp', desc=True)\
-                .limit(limit)\
-                .execute()
-            
-            logging.info(f"✅ تم استرجاع {len(response.data)} رسالة لـ user_id={user_id}")
-            return response.data
-        except Exception as e:
-            logging.error(f"❌ خطأ في استرجاع الرسائل لـ user_id={user_id}: {str(e)}")
             return []
+            
+        except Exception as e:
+            logging.error(f"❌ خطأ في استرجاع سجل المحادثة لـ telegram_id={telegram_id}: {str(e)}")
+            return []
+    
+    def __del__(self):
+        """إغلاق الاتصال عند حذف الكائن"""
+        if hasattr(self, 'cursor') and self.cursor:
+            self.cursor.close()
+        if hasattr(self, 'connection') and self.connection:
+            self.connection.close()

@@ -7,7 +7,6 @@ from bot_config import *
 from bot_default_defs import replys
 from utils import Utils
 from quiz_handler import QuizHandler
-from supabase_test import SupabaseManager
 from db_handler import DatabaseHandler
 
 class CodroBot:
@@ -17,11 +16,7 @@ class CodroBot:
         self.bot_messages = Data().DEFAULT_BOT_MESSAGES
 
         # Initialize database handlers
-        self.db_manager = SupabaseManager()
-        self.db_handler = DatabaseHandler(
-            'https://rxleurucnmlvswfwvaqo.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ4bGV1cnVjbm1sdnN3Znd2YXFvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY0NTM2MTEsImV4cCI6MjA1MjAyOTYxMX0.1Qb-PurZ2Zyyx1sa2We748xJ9z1U1MDjP4U0J09rfoY'
-        )
+        self.db_handler = DatabaseHandler()
 
         # Create instances
         self.utils = Utils(self.bot_config['system_prompt'], self.bot_messages)
@@ -53,8 +48,8 @@ class CodroBot:
             print("❌ خطأ: user_id غير محدد")
             return "عذراً، حدث خطأ. يرجى المحاولة مرة أخرى."
             
-        self.chat_history = self.db_manager.get_chat_history(int(self.user_id))
-        
+        # استرجاع سجل المحادثة من قاعدة البيانات
+        self.chat_history = await self.db_handler.get_chat_history(int(self.user_id))
 
         try:
             # Configure Gemini
@@ -77,12 +72,13 @@ class CodroBot:
             # تنظيف الرد من HTML tags غير صالحة
             cleaned_response = self.utils.clean_html(response.text)
 
+            # تحديث سجل المحادثة وحفظه في قاعدة البيانات
             new_messages = [
                 {"role": "user", "parts": [message_t]},
                 {"role": "model", "parts": [cleaned_response]}
             ]
             self.chat_history.extend(new_messages)
-            self.db_manager.save_chat_history(int(self.user_id), self.chat_history)
+            await self.db_handler.save_chat_history(int(self.user_id), self.chat_history)
             
             print(cleaned_response)
             return cleaned_response
