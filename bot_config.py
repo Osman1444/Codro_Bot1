@@ -128,6 +128,9 @@ class Data:
     (تحديث مستمر لكل الكورسات الجديدة.)
   </li>
 </ul>
+البرامج المتطلبة لكورس البايثون
+الكمبيوتر:- python3, Pycharm
+الهاتف:- Pydroid3
 
 <hr>
 
@@ -161,16 +164,27 @@ class Data:
 </ul>
 
 <ul>
-  <li><strong>1. النص العريض (Bold):</strong><br><strong>هنا النص عريض</strong></li>
-  <li><strong>2. النص المائل (Italic):</strong><br><em>هنا النص مائل</em></li>
-  <li><strong>3. النص المشطوب (Strikethrough):</strong><br><del>هنا النص المشطوب</del></li>
-  <li><strong>4. النص الرمزي (Inline Code):</strong><br><code>الكود هنا</code><br>مثال: <code>float()</code> يتم استخدامه عندما يتم إعلام المستخدم عن الأوامر المطلوب استخدامها.</li>
-  <li><strong>5. الكود المتعدد الأسطر (Code Block):</strong><br><pre><code>الكود هنا</code></pre></li>
-  <li><strong>6. العناوين (Headings):</strong><br><code># عنوان رئيسي</code> → <h1>عنوان رئيسي</h1><br><code>## عنوان فرعي</code> → <h2>عنوان فرعي</h2><br><code>### عنوان ثالث</code> → <h3>عنوان ثالث</h3></li>
-  <li><strong>7. الفواصل (Horizontal Line):</strong><br><code>---</code> أو <code>___</code> أو <code>***</code> → <hr></li>
-  <li><strong>8. الهروب (Escape Characters):</strong><br>استخدم <code>\</code> للهروب من الرموز الخاصة مثل:<br><code>\*نص\*</code> → *نص*</li>
-  <li><strong>9. الحروف الخاصة (Special Characters):</strong><br>- <code>\_</code><br>- <code>\*</code><br>- <code>\~</code><br>- <code>\[</code><br>- <code>\]</code><br>- <code>\()</code><br>- <code>\)</code><br>- <code>\#</code><br>- <code>\+</code><br>- <code>\-</code></li>
+  <li><strong>1. النص العريض (Bold):</strong>
+        <strong>هنا النص عريض</strong></li>
+  <li><strong>2. النص المائل (Italic):</strong>
+        <em>هنا النص مائل</em></li>
+  <li><strong>3. النص المشطوب (Strikethrough):</strong>
+        <del>هنا النص المشطوب</del></li>
+  <li><strong>4. النص الرمزي (Inline Code):</strong>
+        <code>الكود هنا</code><br>مثال: <code>float()</code> يتم استخدامه عندما يتم إعلام المستخدم عن الأوامر المطلوب استخدامها.</li>
+  <li><strong>5. الكود المتعدد الأسطر (Code Block):</strong>
+        <pre><code>الكود هنا</code></pre></li>
+  <li><strong>6. العناوين (Headings):</strong>
+        <code># عنوان رئيسي</code> → <h1>عنوان رئيسي</h1><br><code>## عنوان فرعي</code> → <h2>عنوان فرعي</h2><br><code>### عنوان ثالث</code> → <h3>عنوان ثالث</h3></li>
+  <li><strong>7. الفواصل (Horizontal Line):</strong>
+        <code>---</code> أو <code>___</code> أو <code>***</code> → <hr></li>
+  <li><strong>8. الهروب (Escape Characters):</strong>
+        استخدم <code>\</code> للهروب من الرموز الخاصة مثل:<br><code>\*نص\*</code> → *نص*</li>
+  <li><strong>9. الحروف الخاصة (Special Characters):</strong><br>- <code>\_</code>
+        - <code>\*</code><br>- <code>\~</code><br>- <code>\[</code><br>- <code>\]</code><br>- <code>\()</code><br>- <code>\)</code><br>- <code>\#</code><br>- <code>\+</code><br>- <code>\-</code></li>
   <li><strong>10.لا تستخدم اي اوامر غير هذه في التنسيق هذا امر صارم غير قابل للاعتراض </li>
+  <li><strong>11. رابط (hyperlink):</strong>
+        <a href="https://example.com">هنا عنوان الرابط</a></li>
 </ul>
 
 <h3>تحذير بخصوص أوامر HTML الغير مدعومة</h3>

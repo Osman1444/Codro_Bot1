@@ -8,6 +8,7 @@ from bot_default_defs import replys
 from utils import Utils
 from quiz_handler import QuizHandler
 from db_handler import DatabaseHandler
+from assignment_handler import AssignmentHandler
 
 class CodroBot:
     def __init__(self):
@@ -32,6 +33,13 @@ class CodroBot:
             self.bot_messages, 
             self.utils.format_message, 
             self.utils.get_message,
+        )
+        self.assignment_handler = AssignmentHandler(
+            self.bot_config['system_prompt'],
+            self.bot_messages,
+            self.utils.format_message,
+            self.utils.get_message,
+            self.db_handler
         )
 
         # State variables
@@ -95,10 +103,14 @@ class CodroBot:
         self.application.add_handler(CommandHandler("courses", self.bot_replys.courses))
         self.application.add_handler(CommandHandler("schedule", self.bot_replys.schedule))
         self.application.add_handler(CommandHandler("contact", self.bot_replys.contact))
-        # Add handler for quiz setup callbacks
+        self.application.add_handler(CommandHandler("assignment", self.assignment_handler.start_assignment))
+        
+        # Add handlers for callbacks
         self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_callback, pattern="^(course_|count_|lesson_|finish_)"))
-        # Add handler for quiz answer callbacks
-        self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_button_callback))
+        self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_button_callback, pattern="^answer_"))
+        self.application.add_handler(CallbackQueryHandler(self.assignment_handler.handle_callback, pattern="^assign_"))
+        self.application.add_handler(CallbackQueryHandler(self.bot_replys.button_callback, pattern="^python_"))  # إضافة معالج أزرار الكورسات
+        
         self.application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, self.handle_message))
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
