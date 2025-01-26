@@ -107,7 +107,7 @@ class CodroBot:
         
         # Add handlers for callbacks
         self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_callback, pattern="^(course_|count_|lesson_|finish_)"))
-        self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_button_callback, pattern="^answer_"))
+        self.application.add_handler(CallbackQueryHandler(self.quiz_handler.handle_button_callback, pattern="^ans_"))
         self.application.add_handler(CallbackQueryHandler(self.assignment_handler.handle_callback, pattern="^assign_"))
         self.application.add_handler(CallbackQueryHandler(self.bot_replys.button_callback, pattern="^python_"))  # إضافة معالج أزرار الكورسات
         

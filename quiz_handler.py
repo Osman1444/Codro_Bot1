@@ -53,6 +53,7 @@ class QuizHandler:
 
     async def handle_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """Handle callback queries from inline keyboards"""
+        print('qwertyuiop[;lkjhgfdsxcvb')
         query = update.callback_query
         await query.answer()
         
@@ -293,7 +294,7 @@ class QuizHandler:
         # Configure Gemini
         genai.configure(api_key="AIzaSyAAhhHq792UUWT-e_6Ft0uYpkcBJ6FK5bs")
         model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash-exp",
+            model_name="gemini-2.0-flash-thinking-exp-01-21",
             generation_config={
                 "temperature": 0.9,
                 "top_p": 0.95,
@@ -316,6 +317,7 @@ class QuizHandler:
                 json_str = json_str.split("```json")[1].split("```")[0]
             json_str = json_str.strip()
             quiz_data = json.loads(json_str)
+            print(quiz_data['questions'])
             self.current_quiz[user_id]['questions'] = quiz_data['questions']
             # تهيئة متغيرات الاختبار
             self.current_quiz[user_id].update({
@@ -333,87 +335,17 @@ class QuizHandler:
             })
         
         # Send the first question
+        print('eslkkvbewh')
         await self.send_next_question(update, context)
 
-    async def send_next_question(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        """Send the next quiz question"""
-        user_id = update.effective_user.id
-        quiz = self.current_quiz.get(user_id)
-
-        if not quiz or quiz['current_question'] >= quiz['question_count']:
-            # الاختبار انتهى
-            if quiz:
-                score_message = f"""
-                🎉 انتهى الاختبار!
-                النتيجة النهائية: {quiz['score']}/{quiz['question_count']}
-                
-                ⏳ جاري تحليل نتائجك...
-                """
-                if update.callback_query:
-                    await update.callback_query.message.reply_text(score_message, parse_mode="HTML")
-                else:
-                    await update.message.reply_text(score_message, parse_mode="HTML")
-                
-                # تقييم الأداء
-                evaluation = await self.evaluate_performance(user_id)
-                
-                try:
-                    if update.callback_query:
-                        await update.callback_query.message.reply_text(evaluation, parse_mode="HTML")
-                    else:
-                        await update.message.reply_text(evaluation, parse_mode="HTML")
-                except telegram.error.BadRequest:
-                    # إذا فشل إرسال الرسالة بـ HTML، نحاول إرسالها كنص عادي
-                    if update.callback_query:
-                        await update.callback_query.message.reply_text(evaluation)
-                    else:
-                        await update.message.reply_text(evaluation)
-                
-                # حفظ نتائج الاختبار في قاعدة البيانات
-                if self.db_handler:
-                    await self.db_handler.save_message(
-                        user_id=user_id,
-                        message_type="quiz_result",
-                        message_content=score_message + "\n\n" + evaluation,
-                        course=quiz.get('course', 'Python'),
-                        score=quiz['score'],
-                        total=quiz['question_count']
-                    )
-                
-                del self.current_quiz[user_id]
-            return
-
-        current_q = quiz['questions'][quiz['current_question']]
-        keyboard = []   
-        for i, option in enumerate(current_q['options']):
-            callback_data = f"ans_{quiz['current_question']}_{i}"
-            keyboard.append([InlineKeyboardButton(option, callback_data=callback_data)])
-        reply_markup = InlineKeyboardMarkup(keyboard)
-        
-        question_text = f"""
-        السؤال {quiz['current_question'] + 1} من {quiz['question_count']}:
-        
-        {current_q['question']}
-        """
-        
-        if update.callback_query:
-            await update.callback_query.message.reply_text(
-                question_text,
-                reply_markup=reply_markup,
-                parse_mode="HTML"
-            )
-        else:
-            await update.message.reply_text(
-                question_text,
-                reply_markup=reply_markup,
-                parse_mode="HTML"
-            )
-
     async def handle_button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        print('lizedugn;oiweJvoiwjevoniنعع')
         """Handle quiz answer button callbacks"""
         query = update.callback_query
+        print(query)
         
         if not query.data.startswith('ans_'):
+            print('not ans')
             return
             
         user_id = query.from_user.id
@@ -483,7 +415,7 @@ class QuizHandler:
             message = update.message
 
         quiz = self.current_quiz[user_id]
-        
+
         # التحقق من انتهاء الاختبار
         if quiz['current_question'] >= quiz['question_count']:
             # حساب النتيجة النهائية
@@ -491,16 +423,16 @@ class QuizHandler:
                 f"🎯 النتيجة النهائية: {quiz['score']}/{quiz['question_count']}\n"
                 f"النسبة المئوية: {(quiz['score']/quiz['question_count'])*100:.1f}%"
             )
-            
+
             try:
                 if update.callback_query:
                     await update.callback_query.message.reply_text(score_message, parse_mode="HTML")
                 else:
                     await update.message.reply_text(score_message, parse_mode="HTML")
-                
+
                 # تقييم الأداء
                 evaluation = await self.evaluate_performance(user_id)
-                
+
                 try:
                     if update.callback_query:
                         await update.callback_query.message.reply_text(evaluation, parse_mode="HTML")
@@ -512,7 +444,7 @@ class QuizHandler:
                         await update.callback_query.message.reply_text(evaluation)
                     else:
                         await update.message.reply_text(evaluation)
-                
+
                 # حفظ نتائج الاختبار في قاعدة البيانات
                 if self.db_handler:
                     await self.db_handler.save_message(
@@ -523,7 +455,7 @@ class QuizHandler:
                         score=quiz['score'],
                         total=quiz['question_count']
                     )
-                
+
                 del self.current_quiz[user_id]
             except Exception as e:
                 logging.error(f"Error sending final results: {str(e)}")
@@ -539,7 +471,7 @@ class QuizHandler:
                 callback_data=f"ans_{quiz['current_question'] + 1}_{i}"
             )])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         try:
             question_text = (
                 f"السؤال {quiz['current_question'] + 1}/{quiz['question_count']}:\n\n"

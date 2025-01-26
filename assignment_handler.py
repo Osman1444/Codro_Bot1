@@ -21,7 +21,7 @@ class AssignmentHandler:
         # تهيئة Gemini
         genai.configure(api_key="AIzaSyAAhhHq792UUWT-e_6Ft0uYpkcBJ6FK5bs")
         self.model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash-exp",
+            model_name="gemini-2.0-flash-thinking-exp-01-21",
             generation_config={
                 "temperature": 0.9,
                 "top_p": 0.95,
@@ -98,7 +98,7 @@ class AssignmentHandler:
 {', '.join(lessons)}
 
 محتوى الدروس:
-{chr(10).join(f'• {title}:{chr(10)}{desc}' for title, desc in lessons_info.items())}
+{chr(10).join([f'• {title}:\n{desc}' for title, desc in lessons_info.items()])}
 
 قيود مهمة:
 - مستوى الصعوبة: {difficulty}
