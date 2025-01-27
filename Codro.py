@@ -47,7 +47,7 @@ class CodroBot:
         self.user_id = None
 
         # Initialize application
-        self.token = '7820673343:AAHUct_C79oY1pOGnKPvuYeT8UGMW2UO9MU'
+        self.token = '7820673343:AAE3ISuGzoS_xVKdYo7ZSnXtRYtV3wsOep8'
         self.application = Application.builder().token(self.token).connect_timeout(60.0).read_timeout(60.0).build()
         self._setup_handlers()
 
