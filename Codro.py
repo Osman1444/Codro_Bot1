@@ -218,7 +218,11 @@ class CodroBot:
 
     def run(self):
         """تشغيل البوت"""
-        self.application.run_polling()
+        self.application.run_webhook(
+    listen="0.0.0.0",
+    port=8443,  # يمكن تغييره حسب الحاجة
+    webhook_url="https://yourdomain.com/YOUR_BOT_TOKEN"
+)
 
 def main():
     bot = CodroBot()
