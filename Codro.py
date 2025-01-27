@@ -9,6 +9,7 @@ from utils import Utils
 from quiz_handler import QuizHandler
 from db_handler import DatabaseHandler
 from assignment_handler import AssignmentHandler
+import os
 
 class CodroBot:
     def __init__(self):
@@ -47,7 +48,7 @@ class CodroBot:
         self.user_id = None
 
         # Initialize application
-        self.token = '7820673343:AAE3ISuGzoS_xVKdYo7ZSnXtRYtV3wsOep8'
+        self.token = '7828553252:AAFBfrF6v6oatmWfERorKYSXvQMTi7bKD1U'
         self.application = Application.builder().token(self.token).connect_timeout(60.0).read_timeout(60.0).build()
         self._setup_handlers()
 
@@ -218,11 +219,14 @@ class CodroBot:
 
     def run(self):
         """تشغيل البوت"""
+        # For production with webhook on Railway
+        port = int(os.environ.get('PORT', 8443))
         self.application.run_webhook(
-    listen="0.0.0.0",
-    port=8443,  # يمكن تغييره حسب الحاجة
-    webhook_url="https://yourdomain.com/YOUR_BOT_TOKEN"
-)
+            listen="0.0.0.0",
+            port=port,
+            url_path=self.token,
+            webhook_url=f"https://{os.environ.get('RAILWAY_STATIC_URL', 'your-app-name.railway.app')}/{self.token}"
+        )
 
 def main():
     bot = CodroBot()
