@@ -1,5 +1,6 @@
 import asyncio
 import time
+import random
 import google.generativeai as genai
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
@@ -9,7 +10,6 @@ from utils import Utils
 from quiz_handler import QuizHandler
 from db_handler import DatabaseHandler
 from assignment_handler import AssignmentHandler
-import os
 
 class CodroBot:
     def __init__(self):
@@ -61,8 +61,8 @@ class CodroBot:
         self.chat_history = await self.db_handler.get_chat_history(int(self.user_id))
 
         try:
-            # Configure Gemini
-            genai.configure(api_key="AIzaSyAAhhHq792UUWT-e_6Ft0uYpkcBJ6FK5bs")
+            # Configure Gemini API
+            genai.configure(api_key=get_gemini_api())
             model = genai.GenerativeModel(
                 model_name="gemini-2.0-flash-exp",
                 generation_config={
@@ -219,14 +219,7 @@ class CodroBot:
 
     def run(self):
         """تشغيل البوت"""
-        # For production with webhook on Railway
-        port = int(os.environ.get('PORT', 8443))
-        self.application.run_webhook(
-            listen="0.0.0.0",
-            port=port,
-            url_path=self.token,
-            webhook_url=f"https://{os.environ.get('RAILWAY_STATIC_URL', 'your-app-name.railway.app')}/{self.token}"
-        )
+        self.application.run_polling()
 
 def main():
     bot = CodroBot()
